@@ -72,8 +72,8 @@ first_repository
        Главный файл ManipulationCustomDataInExeFileConsole:
        
           Пользовательские типы:
-              TFooterBufferExeFile - запись, содержит информацию о футере исполняемого файла;
-              TBufferExeFile - массив символов, буфер исполняемого файла;
+             TFooterBufferExeFile - запись, содержит информацию о футере исполняемого файла;
+             TBufferExeFile - массив символов, буфер исполняемого файла;
            
           Методы:
              getAnsiStringFromString(const ansiString: string): string - функция возращает 
@@ -87,8 +87,31 @@ first_repository
              function getBufferExeFileFromString (const stringData : String) : TBufferExeFile
                    - функция позволяет получить буфер с строки.
            
-       Файл    
-           
+       Файл  ManipulationTextFile:
+       
+           Пользовательские типы:
+             TStringArray - массив строк;
+             TCharacterArray - массив символов;
+                 
+           Методы:
+             getAnsiStringFromString(const ansiString: string): string функция возращает 
+                   строку типа ANSI с строки.
+             printLinesFromFile(nameFile : String) - процедура позволяет печать строки файла.
+             readLinesFromFile(nameFile: String) : TStringArray - функция позволяет считывать
+                   строки файла в массив строк.
+             getLinesFileWithoutEmptyLines(arrayStrings : TStringArray) : TStringArray - функ-
+                   ция позволяет получить строки файла без пустых строк.
+             getSingleStringFromAllLinesFile(nameFile : String) : TCharacterArray - функция по-
+                   зволяет получить строку не определёной длины с всех строк файла.
+             convertStringToArrayCharacters(singleString : String) : TCharacterArray - функция 
+                   конвертировать строку в массив символов.
+             convertArrayCharactersToString(arrayCharacters : TCharacterArray) : String - функ-
+                   ция конвертировать в строку.
+                   
+                   
+                   
+                   
+                   
            
            
            
