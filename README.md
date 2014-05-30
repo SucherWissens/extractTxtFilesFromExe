@@ -67,7 +67,42 @@ first_repository
              системы процессом RunDll.
           
           
-          
+       Реализованный функционал:
+       
+       Главный файл ManipulationCustomDataInExeFileConsole:
+       
+          Пользовательские типы:
+              TFooterBufferExeFile - запись, содержит информацию о футере исполняемого файла;
+              TBufferExeFile - массив символов, буфер исполняемого файла;
+           
+          Методы:
+             getAnsiStringFromString(const ansiString: string): string - функция возращает 
+                   строку типа ANSI с строки. 
+             setDataInExeFile (nameExeFile : String; bufferExeFile : TBufferExeFile) - проце-
+                   дура позволяет устанавливать буфер в испольняемый файл.
+             getDataFromExeFile(nameExeFile : String) : TBufferExeFile - функция позволяет по-
+                   лучить пользовательские данные с исполняемого файла в виде буфера данных.
+             function getStringFromBufferExeFile(const bufferExeFile : TBufferExeFile) : String
+                   - функция позволяет получить строку с буфера исполняемого файла.
+             function getBufferExeFileFromString (const stringData : String) : TBufferExeFile
+                   - функция позволяет получить буфер с строки.
+           
+       Файл    
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
           
           
           
