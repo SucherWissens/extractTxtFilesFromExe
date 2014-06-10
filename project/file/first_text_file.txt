@@ -1,0 +1,5 @@
+
+	File handling in Pascal
+
+	Something most programmers need to know how to do is work with files.
+    Files can be used to save user setting, error logs and more.	

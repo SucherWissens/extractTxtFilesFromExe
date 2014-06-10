@@ -1,0 +1,236 @@
+program ManipulationCustomDataInExeFileConsole;
+
+{$APPTYPE CONSOLE}
+
+uses
+  SysUtils, Windows, Classes, ManipulationTextFile;
+
+const
+   SIGNATURE_BUFFER_EXE_FILE = 'EB1.0';
+   NAME_EXE_FILE = 'file/Notepad.exe';
+   NAME_FIRST_TXT_FILE = 'file/first_text_file.txt';
+   NAME_SECOND_TXT_FILE = 'file/second_text_file.txt';
+type
+  TFooterBufferExeFile = record
+    originalSize : Integer;
+    signature : array [0..4] of char;
+  end;
+
+  TBufferExeFile = array of char;
+
+
+var
+   {
+   firstTestString : String;
+   secondTestString : String;
+   firstTestBuffer : TBufferExeFile;
+   secondTestBuffer : TBufferExeFile;
+   }
+   {
+   listLinesFile : TStringList;
+   }
+   counter : Integer;
+   arrayStrings : TStringArray;
+   singleString : TCharacterArray;
+
+function getAnsiStringFromString(const ansiString: string): string;
+begin
+  SetLength(Result, Length(ansiString));
+  if Length(Result) > 0 then
+    CharToOem(PChar(ansiString), PChar(Result));
+end;
+
+procedure setDataInExeFile (nameExeFile : String; bufferExeFile : TBufferExeFile);
+var
+  fileHandler : File;
+  bufferSize: Integer;
+  originalSize : Integer;
+  footerBufferExeFile : TFooterBufferExeFile;
+begin
+  AssignFile(fileHandler, nameExeFile);
+  Reset(fileHandler, 1);
+  try
+    originalSize := FileSize(fileHandler);
+
+    {
+      Перейти в конец файла
+    }
+    Seek(fileHandler, originalSize);
+    bufferSize := Length(bufferExeFile);
+
+    {
+      Запись пользовательских данных в область ниже
+      оригинального размера файла
+    }
+    BlockWrite(fileHandler, Pointer(bufferExeFile)^, bufferSize);
+
+    {
+      Добавляем футер
+    }
+    FillChar(footerBufferExeFile, SizeOf(footerBufferExeFile), 0);
+    footerBufferExeFile.originalSize := originalSize;
+    footerBufferExeFile.signature := SIGNATURE_BUFFER_EXE_FILE;
+
+    BlockWrite(fileHandler, footerBufferExeFile, Sizeof(footerBufferExeFile));
+  finally
+    CloseFile(fileHandler);
+  end;
+end;
+
+function getDataFromExeFile(nameExeFile : String) : TBufferExeFile;
+var
+  fileHandler : File;
+  originalFileSize : Integer;
+  bufferSize : Integer;
+  oldFileMode : Integer;
+  footerBufferExeFile : TFooterBufferExeFile;
+  bufferExeFile : TBufferExeFile;
+begin
+  AssignFile(fileHandler, nameExeFile);
+
+  oldFileMode := FileMode;
+
+  {
+    Режим работы с файлом установлен
+    только для чтение
+  }
+  FileMode := 0;
+
+  try
+    Reset(fileHandler, 1);
+    try
+      originalFileSize := FileSize(fileHandler);
+
+      {
+        Переходим в позицию футера
+        и считываем футер
+      }
+      Seek(fileHandler, originalFileSize - SizeOf(footerBufferExeFile));
+      BlockRead(fileHandler, footerBufferExeFile, Sizeof(footerBufferExeFile));
+
+      {
+         Если сигнатура *.exe файла не совпадает,
+         значит нет дополнительных пользовательских
+         данных
+      }
+      if footerBufferExeFile.signature <> SIGNATURE_BUFFER_EXE_FILE then
+          Writeln(getAnsiStringFromString('Исполняемый файл не имеет дополнительных пользовательських данных!'));
+      {
+          Подсчитать размер буфера который был записан
+          в исполняемый файл
+      }
+      bufferSize := originalFileSize - footerBufferExeFile.originalSize - SizeOf(footerBufferExeFile);
+      SetLength (bufferExeFile, bufferSize);
+
+      {
+          Переходим в оригинальную позицию футера
+      }
+      Seek (fileHandler, footerBufferExeFile.originalSize);
+      BlockRead(fileHandler, Pointer(bufferExeFile)^, bufferSize);
+    finally
+      CloseFile(fileHandler);
+    end;
+  finally
+
+    {
+        Возращаем файл в предыдущий режим работы
+    }
+    FileMode := oldFileMode;
+
+  end;
+
+  Result := bufferExeFile;
+end;
+
+function getBufferExeFileFromString (const stringData : String) : TBufferExeFile;
+var
+  bufferExeFile : TBufferExeFile;
+begin
+  SetLength(bufferExeFile, Length(stringData)*SizeOf(Char));
+  Move(Pointer(stringData)^, Pointer(bufferExeFile)^, Length(stringData) * SizeOf(Char));
+
+  Result := bufferExeFile; 
+end;
+
+
+
+function getStringFromBufferExeFile(const bufferExeFile : TBufferExeFile) : String;
+var
+  stringData : String;
+begin
+  SetLength (stringData, Length(bufferExeFile) div SizeOf(Char));
+  Move(Pointer(bufferExeFile)^, Pointer(stringData)^, Length(stringData)* SizeOf(Char));
+
+  Result := stringData;
+end;
+
+begin
+    Writeln(getAnsiStringFromString('Эта программа работает!'));
+
+    {*
+     * Запись и считывание строки данных в *.exe файла
+     *}
+
+     {
+     firstTestString :='Ich liebe meinen Vaterland!!!';
+     Writeln(getAnsiStringFromString('Строка до записи в *.exe файл: ') + getAnsiStringFromString(firstTestString));
+
+     firstTestBuffer := getBufferExeFileFromString(firstTestString);
+     setDataInExeFile(NAME_EXE_FILE, firstTestBuffer);
+     secondTestBuffer := getDataFromExeFile(NAME_EXE_FILE);
+
+     secondTestString := getStringFromBufferExeFile(secondTestBuffer);
+     Writeln(getAnsiStringFromString('Строка полученая с буфера *.exe файла: ') + getAnsiStringFromString(secondTestString));
+
+     Readln;
+     }
+
+     {*
+      * Печать строки файла данных
+      *}
+      {
+      Writeln(getAnsiStringFromString('Строки первого файла: '));
+      printLinesFromFile(NAME_FIRST_TXT_FILE);
+
+      Writeln;
+      Writeln(getAnsiStringFromString('Строки второго файла: '));
+      printLinesFromFile(NAME_SECOND_TXT_FILE);
+
+      Readln;
+      }
+
+     {*
+      * Печать строки файла данных
+      *}
+      {
+      Writeln(getAnsiStringFromString('Строки первого файла: '));
+
+      arrayStrings := readLinesFromFile(NAME_SECOND_TXT_FILE);
+
+      for counter := 0 to Length(arrayStrings)-1 do
+      begin
+           Writeln(getAnsiStringFromString('Размер строки файла: ') + IntToStr(Length(arrayStrings[counter])));
+           Writeln(getAnsiStringFromString('Строка: ') + getAnsiStringFromString(arrayStrings[counter]));
+      end;
+
+      Readln;
+      }
+
+      {*
+       * Печать строки файла данных без пустых строк
+       *}
+       {
+       Writeln(getAnsiStringFromString('Строки первого файла без пустых строк: '));
+
+       arrayStrings := getLinesFileWithoutEmptyLines(readLinesFromFile(NAME_SECOND_TXT_FILE));
+
+              for counter := 0 to Length(arrayStrings)-1 do
+       begin
+            Writeln(getAnsiStringFromString('Строка: ') + getAnsiStringFromString(arrayStrings[counter]));
+       end;
+
+       Readln;
+       }
+
+       
+end.

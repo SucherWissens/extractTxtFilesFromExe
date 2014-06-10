@@ -1,0 +1,8 @@
+  
+		
+	IO
+
+
+	IO is file handling API for programming language Pascal. It tells compiler
+     how to deal with IO error situations: raise an exception or store  the result
+     into the IOResult variable.	
